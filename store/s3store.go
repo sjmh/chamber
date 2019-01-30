@@ -149,7 +149,7 @@ func (s *S3Store) Write(id SecretId, value string) error {
 	return s.writeLatest(id.Service, index)
 }
 
-func (s *S3Store) Read(id SecretId, version int) (Secret, error) {
+func (s *S3Store) Read(id SecretId, version int, quiet bool) (Secret, error) {
 	obj, ok, err := s.readObjectById(id)
 	if err != nil {
 		return Secret{}, err

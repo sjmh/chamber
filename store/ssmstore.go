@@ -77,7 +77,7 @@ func (s *SSMStore) KMSKey() string {
 func (s *SSMStore) Write(id SecretId, value string) error {
 	version := 1
 	// first read to get the current version
-	current, err := s.Read(id, -1)
+	current, err := s.Read(id, -1, true)
 	if err != nil && err != ErrSecretNotFound {
 		return err
 	}
@@ -105,9 +105,9 @@ func (s *SSMStore) Write(id SecretId, value string) error {
 
 // Read reads a secret from the parameter store at a specific version.
 // To grab the latest version, use -1 as the version number.
-func (s *SSMStore) Read(id SecretId, version int) (Secret, error) {
+func (s *SSMStore) Read(id SecretId, version int, quiet bool) (Secret, error) {
 	if version == -1 {
-		return s.readLatest(id)
+		return s.readLatest(id, quiet)
 	}
 
 	return s.readVersion(id, version)
@@ -117,7 +117,7 @@ func (s *SSMStore) Read(id SecretId, version int) (Secret, error) {
 // versions of the secret.
 func (s *SSMStore) Delete(id SecretId) error {
 	// first read to ensure parameter present
-	_, err := s.Read(id, -1)
+	_, err := s.Read(id, -1, true)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (s *SSMStore) readVersion(id SecretId, version int) (Secret, error) {
 	return Secret{}, ErrSecretNotFound
 }
 
-func (s *SSMStore) readLatest(id SecretId) (Secret, error) {
+func (s *SSMStore) readLatest(id SecretId, quiet bool) (Secret, error) {
 	getParametersInput := &ssm.GetParametersInput{
 		Names:          []*string{aws.String(s.idToName(id))},
 		WithDecryption: aws.Bool(true),
@@ -186,6 +186,10 @@ func (s *SSMStore) readLatest(id SecretId) (Secret, error) {
 		return Secret{}, ErrSecretNotFound
 	}
 	param := resp.Parameters[0]
+
+	if quiet {
+		return Secret{Value: param.Value}, nil
+	}
 	var parameter *ssm.ParameterMetadata
 	var describeParametersInput *ssm.DescribeParametersInput
 

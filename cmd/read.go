@@ -65,7 +65,7 @@ func read(cmd *cobra.Command, args []string) error {
 		Key:     key,
 	}
 
-	secret, err := secretStore.Read(secretId, version)
+	secret, err := secretStore.Read(secretId, version, quiet)
 	if err != nil {
 		return errors.Wrap(err, "Failed to read")
 	}

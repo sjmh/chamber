@@ -85,7 +85,7 @@ func write(cmd *cobra.Command, args []string) error {
 	}
 
 	if skipUnchanged {
-		currentSecret, err := secretStore.Read(secretId, -1)
+		currentSecret, err := secretStore.Read(secretId, -1, true)
 		if err == nil && value == *currentSecret.Value {
 			return nil
 		}
